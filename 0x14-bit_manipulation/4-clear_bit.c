@@ -1,20 +1,18 @@
 #include "main.h"
 #include <stdlib.h>
+
 /**
- * clear_bit - This prog sets value of a bit to 0 at a given index
- * @num: parameter
- * @bit_index: index
- * Return: 1 if success, -1 if error
+ * @brief This function determines the endianness of the system by checking the value of the least significant byte of an integer.
+ *
+ * @param None
+ * @return 0 if big endian, 1 if little endian
  */
-int clear_bit(unsigned long int *num, unsigned int bit_index)
+int get_endianness(void)
 {
- // check if the index is valid
- if (bit_index > sizeof(*num) * 8) // added parentheses
- return (-1);
+	int num;
+	char *byte_ptr;
 
- // use bitwise AND with the complement of a shifted 1 to clear the bit
- *num &= ~(1 << bit_index);
-
- return (1);
+	num = 1;
+	byte_ptr = (char *)#
+	return (*byte_ptr);
 }
-
