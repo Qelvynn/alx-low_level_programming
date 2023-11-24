@@ -1,18 +1,26 @@
 #include "main.h"
-#include <stdlib.h>
 
 /**
- * @brief This function determines the endianness of the system by checking the value of the least significant byte of an integer.
+ * binary_to_uint - function converts a binary number to an unsigned int.
+ * @b: pointer to a string containing a binary number
  *
- * @param None
- * @return 0 if big endian, 1 if little endian
+ * Return: unsigned int with decimal value of binsry number, or 0 if error
  */
-int get_endianness(void)
+unsigned int binary_to_uint(const char *b)
 {
-	int num;
-	char *byte_ptr;
+	int a;
+	unsigned int num;
 
-	num = 1;
-	byte_ptr = (char *)#
-	return (*byte_ptr);
+	num = 0;
+	if (!b)
+		return (0);
+	for (a = 0; b[a] != '\0'; a++)
+	{
+		if (b[a] != '0' && b[a] != '1')
+			return (0);
+		num <<= 1;
+		if (b[a] == '1')
+			num += 1;
+	}
+	return (num);
 }
