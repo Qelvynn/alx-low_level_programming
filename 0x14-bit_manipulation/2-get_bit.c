@@ -1,7 +1,7 @@
 #include "main.h"
 
 /**
- * get_bit - prog returns the value of a bit at a given index
+ * get_bit - prog returns value of a bit at a given index
  * @n: number to check bits in
  * @index: index at which to check bit
  *
