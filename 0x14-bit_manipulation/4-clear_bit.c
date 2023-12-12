@@ -1,26 +1,33 @@
-#include "main.h"
+#include <stdio.h>
 
-/**
- * binary_to_uint - function converts a binary number to an unsigned int.
- * @b: pointer to a string containing a binary number
- *
- * Return: unsigned int with decimal value of binsry number, or 0 if error
- */
-unsigned int binary_to_uint(const char *b)
+int clear_bit(unsigned long int *n, unsigned int index)
 {
-	int a;
-	unsigned int num;
+    /* Check if index is valid */
+    if (index >= sizeof(unsigned long int) * 8)
+        return (-1);
 
-	num = 0;
-	if (!b)
-		return (0);
-	for (a = 0; b[a] != '\0'; a++)
-	{
-		if (b[a] != '0' && b[a] != '1')
-			return (0);
-		num <<= 1;
-		if (b[a] == '1')
-			num += 1;
-	}
-	return (num);
+    /* Create a mask with a 0 bit at the given index */
+    unsigned long int mask = ~(1UL << index);
+
+    /* Bitwise AND n with mask to clear the bit */
+    *n = *n & mask;
+
+    /* Return 1 if successful */
+    return (1);
+}
+
+int main(void)
+{
+    unsigned long int n;
+
+    n = 1024;
+    clear_bit(&n, 10);
+    printf("%lu\n", n);
+    n = 0;
+    clear_bit(&n, 10);
+    printf("%lu\n", n);
+    n = 98;
+    clear_bit(&n, 1);
+    printf("%lu\n", n);
+    return (0);
 }
