@@ -1,78 +1,186 @@
+#include <elf.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <elf.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <unistd.h>
 
-#define ELF_MAGIC "\x7F" "ELF"
-#define READ_SIZE sizeof(Elf64_Ehdr)
+/* Function prototypes */
+void check_elf(unsigned char *e_ident);
+void print_magic(unsigned char *e_ident);
+void print_class(unsigned char *e_ident);
+void print_data(unsigned char *e_ident);
+void print_version(unsigned char *e_ident);
+void print_abi(unsigned char *e_ident);
+void print_osabi(unsigned char *e_ident);
+void print_type(unsigned int e_type, unsigned char *e_ident);
+void print_entry(unsigned long int e_entry, unsigned char *e_ident);
+void close_elf(int elf);
 
 /**
- * main - reads and prints the header of an ELF file
- * @argc: number of arguments
- * @argv: array of arguments
- * Return: 0 on success, 1 on error
+ * check_elf - Checks if a file is an ELF file.
+ * @e_ident: A pointer to an array containing the ELF magic numbers.
+ *
+ * Description: If the file is not an ELF file - exit code 98.
  */
-int main(int argc, char **argv)
+void check_elf(unsigned char *e_ident)
 {
-  struct stat statbuf;
-  Elf64_Ehdr header;
-  char buf[READ_SIZE];
-  int fd;
+	int index;
 
-  /* check if the number of arguments is correct */
-  if (argc != 2)
-    {
-      fprintf(stderr, "Usage: %s elf_filename\n", argv[0]);
-      return (1);
-    }
+	for (index = 0; index < 4; index++)
+	{
+		if (e_ident[index] != 127 &&
+		    e_ident[index] != 'E' &&
+		    e_ident[index] != 'L' &&
+		    e_ident[index] != 'F')
+		{
+			dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
+			exit(98);
+		}
+	}
+}
 
-  /* check if the file exists and is a regular file */
-  if (stat(argv[1], &statbuf) == -1)
-    {
-      perror("stat");
-      return (1);
-    }
-  if (!S_ISREG(statbuf.st_mode))
-    {
-      fprintf(stderr, "%s is not a regular file\n", argv[1]);
-      return (1);
-    }
+/**
+ * print_magic - Prints the magic numbers of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF magic numbers.
+ *
+ * Description: Magic numbers are separated by spaces.
+ */
+void print_magic(unsigned char *e_ident)
+{
+	int index;
 
-  /* open the file and read the header */
-  fd = open(argv[1], O_RDONLY);
-  if (fd == -1)
-    {
-      perror("open");
-      return (1);
-    }
-  if (read(fd, buf, READ_SIZE) != READ_SIZE)
-    {
-      perror("read");
-      close(fd);
-      return (1);
-    }
-  close(fd);
+	printf(" Magic: ");
 
-  /* copy the header to a struct and check if it is an ELF file */
-  memcpy(&header, buf, READ_SIZE);
-  if (strncmp(header.e_ident, ELF_MAGIC, 4) != 0)
-    {
-      fprintf(stderr, "%s is not an ELF file\n", argv[1]);
-      return (98);
-    }
+	for (index = 0; index < EI_NIDENT; index++)
+	{
+		printf("%02x", e_ident[index]);
 
-  /* print the header information */
-  printf("Magic:\t\t0x%02x %02x %02x %02x\n",
-         header.e_ident[0], header.e_ident[1], header.e_ident[2], header.e_ident[3]);
-  printf("Class:\t\t%s\n", header.e_ident[4] == ELFCLASS32 ? "ELF32" : "ELF64");
-  printf("Data:\t\t%s\n", header.e_ident[5] == ELFDATANONE ? "2's complement, little endian" : "2's complement, big endian");
-  printf("Version:\t\t0x%02x\n", header.e_ident[6]);
-  printf("OS/ABI:\t\t%s\n", elf_osabi_stringtab_entry(header.e_ident[7]));
-  printf("ABI Version:\t\t0x%02x\n", header.e_ident[8]);
-  printf("Type:\t\t%s\n", elf_type_stringtab_entry(header.e_type));
-  printf("Entry point address:\t0x%lx\n", header.e_entry);
+		if (index == EI_NIDENT - 1)
+			printf("\n");
+		else
+			printf(" ");
+	}
+}
 
-  return (0);
+/**
+ * print_class - Prints the class of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF class.
+ */
+void print_class(unsigned char *e_ident)
+{
+	printf(" Class: ");
+
+	switch (e_ident[EI_CLASS])
+	{
+	case ELFCLASSNONE:
+		printf("none\n");
+		break;
+	case ELFCLASS32:
+		printf("ELF32\n");
+		break;
+	case ELFCLASS64:
+		printf("ELF64\n");
+		break;
+	default:
+		printf("<unknown: %x>\n", e_ident[EI_CLASS]);
+	}
+}
+
+/**
+ * print_data - Prints the data of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF class.
+ */
+void print_data(unsigned char *e_ident)
+{
+	printf(" Data: ");
+
+	switch (e_ident[EI_DATA])
+	{
+	case ELFDATANONE:
+		printf("none\n");
+		break;
+	case ELFDATA2LSB:
+		printf("2's complement, little endian\n");
+		break;
+	case ELFDATA2MSB:
+		printf("2's complement, big endian\n");
+		break;
+	default:
+		printf("<unknown: %x>\n", e_ident[EI_CLASS]);
+	}
+}
+
+/**
+ * print_version - Prints the version of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF version.
+ */
+void print_version(unsigned char *e_ident)
+{
+	printf(" Version: %d", e_ident[EI_VERSION]);
+
+	switch (e_ident[EI_VERSION])
+	{
+	case EV_CURRENT:
+		printf(" (current)\n");
+		break;
+	default:
+		printf("\n");
+		break;
+	}
+}
+
+/**
+ * print_osabi - Prints the OS/ABI of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF version.
+ */
+void print_osabi(unsigned char *e_ident)
+{
+	printf(" OS/ABI: ");
+
+	switch (e_ident[EI_OSABI])
+	{
+	case ELFOSABI_NONE:
+		printf("UNIX - System V\n");
+		break;
+	case ELFOSABI_HPUX:
+		printf("UNIX - HP-UX\n");
+		break;
+	case ELFOSABI_NETBSD:
+		printf("UNIX - NetBSD\n");
+		break;
+	case ELFOSABI_LINUX:
+		printf("UNIX - Linux\n");
+		break;
+	case ELFOSABI_SOLARIS:
+		printf("UNIX - Solaris\n");
+		break;
+	case ELFOSABI_IRIX:
+		printf("UNIX - IRIX\n");
+		break;
+	case ELFOSABI_FREEBSD:
+		printf("UNIX - FreeBSD\n");
+		break;
+	case ELFOSABI_TRU64:
+		printf("UNIX - TRU64\n");
+		break;
+	case ELFOSABI_ARM:
+		printf("ARM\n");
+		break;
+	case ELFOSABI_STANDALONE:
+		printf("Standalone App\n");
+		break;
+	default:
+		printf("<unknown: %x>\n", e_ident[EI_OSABI]);
+	}
+}
+
+/**
+ * print_abi - Prints the ABI version of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF ABI version.
+ */
+void print_abi(unsigned char *e_ident)
+{
+	printf(" ABI Version: %d\n", e_ident[EI_ABIVERSION]);
 }
