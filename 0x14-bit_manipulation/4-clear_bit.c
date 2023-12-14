@@ -8,18 +8,18 @@
  */
 int clear_bit(unsigned long int *n, unsigned int index)
 {
-    unsigned long int mask;
+	unsigned long int mask;
 
-    /* check if index is valid */
-    if (index > 63)
-        return (-1);
+	/* check if index is valid */
+	if (index > 63)
+		return (-1);
 
-    /* create a mask with a 1 at the index */
-    mask = 1UL << index;
+	/* create a mask with a 1 at the index */
+	mask = 1UL << index;
 
-    /* clear the bit at the index if it is set */
-    if (*n & mask)
-        *n = *n & ~mask;
+	/* clear the bit at the index if it is set */
+	if (*n & mask)
+		*n = *n & ~mask;
 
-    return (1);
+	return (1);
 }
