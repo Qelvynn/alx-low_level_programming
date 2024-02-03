@@ -1,36 +1,15 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include "hash_tables.h"
 
 /**
- * main - check the code
+ * key_index - Get the index at which a key/value
+ *      pair should be stored in array of a hash table.
+ * @key: The key to get the index of.
+ * @size: The size of the array of the hash table.
  *
- * Return: Always EXIT_SUCCESS.
+ * Return: The index of the key.
+ * Description: Uses the djb2 algorithm.
  */
-int main (void)
+unsigned long int key_index(const unsigned char *key, unsigned long int size)
 {
-    shash_table_t *ht;
-
-    ht = shash_table_create(1024);
-    shash_table_set(ht, "y", "0");
-    shash_table_print(ht);
-    shash_table_set(ht, "j", "1");
-    shash_table_print(ht);
-    shash_table_set(ht, "c", "2");
-    shash_table_print(ht);
-    shash_table_set(ht, "b", "3");
-    shash_table_print(ht);
-    shash_table_set(ht, "z", "4");
-    shash_table_print(ht);
-    shash_table_set(ht, "n", "5");
-    shash_table_print(ht);
-    shash_table_set(ht, "a", "6");
-    shash_table_print(ht);
-    shash_table_set(ht, "m", "7");
-    shash_table_print(ht);
-    shash_table_print_rev(ht);
-    shash_table_delete(ht);
-
-    return (EXIT_SUCCESS);
+	return (hash_djb2(key) % size);
 }
